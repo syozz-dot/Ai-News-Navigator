@@ -1,15 +1,13 @@
 /*
  * AI News Navigator — Home Page
  * Design: Google Material Design 3 (White + Blue)
- * Colors: White background, Google Blue primary, light gray accents
- * Layout: Fixed left nav + main content
+ * Data: Fetched from tRPC API (papers, news, products, insights)
  */
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { papers, news, products, oneThingInsight, todayDate, issueNumber } from "@/lib/data";
-import type { Paper, NewsItem, Product } from "@/lib/data";
-import { NeuralNetworkBg } from "@/components/NeuralNetworkBg";
+import { trpc } from "@/lib/trpc";
+import type { Paper, NewsItem, Product, Insight } from "../../../drizzle/schema";
 
 // ─── Animated counter ───────────────────────────────────────────────────────
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -25,23 +23,6 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
     return () => clearInterval(timer);
   }, [value, duration]);
   return <span>{count}</span>;
-}
-
-// ─── Get date range helper ───────────────────────────────────────────────────
-function getDateRange(type: "today" | "week"): { start: Date; end: Date } {
-  const today = new Date(todayDate);
-  if (type === "today") {
-    return { start: today, end: today };
-  } else {
-    const weekAgo = new Date(today);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return { start: weekAgo, end: today };
-  }
-}
-
-function isDateInRange(dateStr: string, range: { start: Date; end: Date }): boolean {
-  const date = new Date(dateStr);
-  return date >= range.start && date <= range.end;
 }
 
 // ─── Section header ──────────────────────────────────────────────────────────
@@ -79,34 +60,37 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
       onClick={() => setExpanded(!expanded)}
     >
       <div className="p-5">
-        {/* Header */}
         <div className="flex items-start gap-3 mb-3">
           <div className="flex-shrink-0 mt-1">
-            <span className="tag-blue">{paper.tag}</span>
+            <span className="tag-blue">{paper.tag || "AI"}</span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-gray-500 mb-1">
-              [{paper.id}] · {paper.submitted} · {paper.source}
+              [{paper.paperId}] · {paper.submitted} · {paper.source}
             </div>
             <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-blue-600 transition-colors">
               {paper.title}
             </h3>
-            <div className="font-cn text-gray-600 text-xs mt-1">{paper.titleCn}</div>
+            {paper.titleCn && (
+              <div className="font-cn text-gray-600 text-xs mt-1">{paper.titleCn}</div>
+            )}
           </div>
-          <div className="flex-shrink-0 flex flex-col items-center gap-1">
-            <div className="font-display text-blue-600 text-lg font-bold leading-none">
-              {paper.impactScore}
+          {paper.impactScore != null && (
+            <div className="flex-shrink-0 flex flex-col items-center gap-1">
+              <div className="font-display text-blue-600 text-lg font-bold leading-none">
+                {paper.impactScore}
+              </div>
+              <div className="text-xs text-gray-500">IMPACT</div>
             </div>
-            <div className="text-xs text-gray-500">IMPACT</div>
+          )}
+        </div>
+
+        {paper.corePrinciple && (
+          <div className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+            {paper.corePrinciple}
           </div>
-        </div>
+        )}
 
-        {/* Core principle */}
-        <div className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
-          {paper.corePrinciple}
-        </div>
-
-        {/* Expand indicator */}
         <div className="flex items-center gap-2 mt-3">
           <div className="flex-1 h-px bg-gray-200" />
           <span className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors">
@@ -115,7 +99,6 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
         </div>
       </div>
 
-      {/* Expanded PM insights */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -126,27 +109,33 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 bg-gray-50">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-blue">底层逻辑</span>
+              {paper.bottomLogic && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-blue">底层逻辑</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.bottomLogic}</p>
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.bottomLogic}</p>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-amber">落地想象</span>
+              )}
+              {paper.productImagination && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-amber">落地想象</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.productImagination}</p>
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.productImagination}</p>
-              </div>
-              <a
-                href={paper.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                → VIEW ON ARXIV
-              </a>
+              )}
+              {paper.url && (
+                <a
+                  href={paper.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  → VIEW ON ARXIV
+                </a>
+              )}
             </div>
           </motion.div>
         )}
@@ -163,7 +152,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
     high: { tag: "tag-cyan", dot: "bg-cyan-500", label: "HIGH" },
     medium: { tag: "tag-blue", dot: "bg-blue-500", label: "MEDIUM" },
   };
-  const u = urgencyColors[item.urgency];
+  const u = urgencyColors[item.urgency] || urgencyColors.medium;
 
   return (
     <motion.div
@@ -177,7 +166,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
           <div className="flex-shrink-0 mt-0.5 flex flex-col gap-1.5">
-            <span className={`${u.tag}`}>{item.tag}</span>
+            <span className={`${u.tag}`}>{item.tag || "AI"}</span>
             <div className="flex items-center gap-1.5">
               <div className={`w-1.5 h-1.5 rounded-full ${u.dot} pulse-dot`} />
               <span className="text-xs text-gray-500">{u.label}</span>
@@ -185,18 +174,22 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-gray-500 mb-1">
-              [{item.id}] · {item.time} · {item.source}
+              [{item.newsId}] · {item.time} · {item.source}
             </div>
             <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-amber-600 transition-colors">
               {item.headline}
             </h3>
-            <div className="font-cn text-gray-600 text-xs mt-1">{item.headlineCn}</div>
+            {item.headlineCn && (
+              <div className="font-cn text-gray-600 text-xs mt-1">{item.headlineCn}</div>
+            )}
           </div>
         </div>
 
-        <p className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
-          {item.summary}
-        </p>
+        {item.summary && (
+          <p className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+            {item.summary}
+          </p>
+        )}
 
         <div className="flex items-center gap-2 mt-3">
           <div className="flex-1 h-px bg-gray-200" />
@@ -216,31 +209,37 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 bg-gray-50">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-amber">权力变动</span>
+              {item.powerShift && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-amber">权力变动</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.powerShift.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-600">$1</strong>') }}
+                  />
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.powerShift.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-600">$1</strong>') }}
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-cyan">商业启示</span>
+              )}
+              {item.businessInsight && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-cyan">商业启示</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.businessInsight.replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-600">$1</strong>') }}
+                  />
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.businessInsight.replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-600">$1</strong>') }}
-                />
-              </div>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 transition-colors"
-              >
-                → READ SOURCE
-              </a>
+              )}
+              {item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 transition-colors"
+                >
+                  → READ SOURCE
+                </a>
+              )}
             </div>
           </motion.div>
         )}
@@ -257,7 +256,8 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     "pseudo-need": { label: "伪需求 ✗", color: "text-red-600", bg: "bg-red-50" },
     "watch": { label: "持续观察 ◎", color: "text-amber-600", bg: "bg-amber-50" },
   };
-  const v = verdictConfig[product.verdict];
+  const v = verdictConfig[product.verdict] || verdictConfig.watch;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -270,18 +270,20 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
           <div className="flex-shrink-0 mt-0.5">
-            <span className="tag-cyan">{product.tag}</span>
+            <span className="tag-cyan">{product.tag || "AI"}</span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-gray-500 mb-1">
-              [{product.id}] · {product.source}
+              [{product.productId}] · {product.source}
             </div>
             <h3 className="font-display font-bold text-gray-900 text-base leading-tight group-hover:text-cyan-600 transition-colors">
               {product.name}
             </h3>
-            <p className="text-gray-600 text-xs font-cn mt-1 leading-snug">{product.tagline}</p>
+            {product.tagline && (
+              <p className="text-gray-600 text-xs font-cn mt-1 leading-snug">{product.tagline}</p>
+            )}
           </div>
-          {product.upvotes && (
+          {product.upvotes != null && (
             <div className="flex-shrink-0 flex flex-col items-center">
               <div className="font-display text-cyan-600 text-sm font-bold">▲{product.upvotes}</div>
               <div className="text-xs text-gray-500">VOTES</div>
@@ -307,30 +309,36 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             className="overflow-hidden"
           >
             <div className={`px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 ${v.bg}`}>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-blue">痛点分析</span>
+              {product.painPointAnalysis && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-blue">痛点分析</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.painPointAnalysis}</p>
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.painPointAnalysis}</p>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="tag-cyan">交互创新</span>
+              )}
+              {product.interactionInnovation && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="tag-cyan">交互创新</span>
+                  </div>
+                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.interactionInnovation}</p>
                 </div>
-                <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.interactionInnovation}</p>
-              </div>
+              )}
               <div className={`inline-block px-3 py-1.5 rounded text-xs font-semibold ${v.color}`}>
                 {v.label}
               </div>
-              <a
-                href={product.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 text-xs text-cyan-600 hover:text-cyan-700 transition-colors"
-              >
-                → VISIT PRODUCT
-              </a>
+              {product.url && (
+                <a
+                  href={product.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-xs text-cyan-600 hover:text-cyan-700 transition-colors"
+                >
+                  → VISIT PRODUCT
+                </a>
+              )}
             </div>
           </motion.div>
         )}
@@ -340,15 +348,15 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 }
 
 // ─── One Thing Insight ────────────────────────────────────────────────────────
-function OneThingInsight({ insights, dateFilter }: { insights: typeof oneThingInsight[]; dateFilter: "today" | "week" }) {
+function OneThingInsight({ insights, dateFilter }: { insights: Insight[]; dateFilter: "today" | "week" }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
     if (dateFilter === "week" && insights.length > 1) {
       timerRef.current = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % insights.length);
-      }, 10000); // 10 seconds
+      }, 10000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
@@ -358,6 +366,7 @@ function OneThingInsight({ insights, dateFilter }: { insights: typeof oneThingIn
   }, [dateFilter, insights.length]);
 
   const current = insights[currentIndex];
+  if (!current) return null;
 
   return (
     <motion.div
@@ -371,28 +380,78 @@ function OneThingInsight({ insights, dateFilter }: { insights: typeof oneThingIn
       <div className="space-y-4">
         <div>
           <h3 className="font-display font-bold text-lg text-gray-900">{current.headline}</h3>
-          <p className="text-sm text-blue-600 font-semibold mt-1">{current.subheadline}</p>
+          {current.subheadline && (
+            <p className="text-sm text-blue-600 font-semibold mt-1">{current.subheadline}</p>
+          )}
         </div>
         <p className="text-gray-700 text-sm font-cn leading-relaxed">{current.content}</p>
         <div className="flex items-center justify-between pt-4 border-t border-blue-200">
           <span className="text-xs text-gray-500">来源：{current.source}</span>
-          <span className="text-xs font-semibold text-blue-600">{current.urgency}</span>
+          {current.urgency && (
+            <span className="text-xs font-semibold text-blue-600">{current.urgency}</span>
+          )}
         </div>
+        {insights.length > 1 && (
+          <div className="flex gap-1 justify-center">
+            {insights.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                className={`w-2 h-2 rounded-full transition-colors ${i === currentIndex ? "bg-blue-600" : "bg-gray-300"}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
+  );
+}
+
+// ─── Loading skeleton ─────────────────────────────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-lg p-5 animate-pulse">
+          <div className="flex gap-3">
+            <div className="w-16 h-5 bg-gray-200 rounded" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="text-center py-12 text-gray-400">
+      <p className="text-sm">暂无{label}数据</p>
+      <p className="text-xs mt-1">数据将在每日 08:00 自动更新</p>
+    </div>
   );
 }
 
 // ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
   const [dateFilter, setDateFilter] = useState<"today" | "week">("week");
-  const dateRange = getDateRange(dateFilter);
 
-  // Filter data by date
-  const filteredPapers = papers.filter((p) => isDateInRange(p.date, dateRange));
-  const filteredNews = news.filter((n) => isDateInRange(n.date, dateRange));
-  const filteredProducts = products.filter((p) => isDateInRange(p.date, dateRange));
-  const filteredInsights = [oneThingInsight].filter((i) => isDateInRange(i.date, dateRange));
+  const papersQuery = trpc.papers.list.useQuery({ filter: dateFilter });
+  const newsQuery = trpc.news.list.useQuery({ filter: dateFilter });
+  const productsQuery = trpc.products.list.useQuery({ filter: dateFilter });
+  const insightsQuery = trpc.insights.list.useQuery({ filter: dateFilter });
+
+  const papers = papersQuery.data || [];
+  const news = newsQuery.data || [];
+  const products = productsQuery.data || [];
+  const insights = insightsQuery.data || [];
+
+  const isLoading = papersQuery.isLoading || newsQuery.isLoading || productsQuery.isLoading;
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="min-h-screen bg-white">
@@ -410,14 +469,14 @@ export default function Home() {
         />
         {/* Overlay for text readability */}
         <div className="absolute inset-0 bg-white/60" />
-        
+
         {/* Content */}
         <div className="relative text-center z-10 py-16 px-4">
           <h1 className="font-display text-4xl font-bold text-gray-900 mb-2">
             AI NEWS NAVIGATOR
           </h1>
           <p className="text-lg text-gray-600 mb-6">AI 新闻导航</p>
-          
+
           {/* Date Filter Tabs */}
           <div className="flex justify-center gap-4 mb-8">
             <button
@@ -446,25 +505,25 @@ export default function Home() {
           <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
             <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
               <div className="text-2xl font-bold text-blue-600">
-                <AnimatedCounter value={filteredPapers.length} />
+                <AnimatedCounter value={papers.length} />
               </div>
               <div className="text-xs text-gray-600 mt-1">论文扫描</div>
             </div>
             <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
               <div className="text-2xl font-bold text-amber-600">
-                <AnimatedCounter value={filteredNews.length} />
+                <AnimatedCounter value={news.length} />
               </div>
               <div className="text-xs text-gray-600 mt-1">行业要闻</div>
             </div>
             <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
               <div className="text-2xl font-bold text-cyan-600">
-                <AnimatedCounter value={filteredProducts.length} />
+                <AnimatedCounter value={products.length} />
               </div>
               <div className="text-xs text-gray-600 mt-1">创新产品</div>
             </div>
             <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
               <div className="text-2xl font-bold text-gray-900">
-                <AnimatedCounter value={filteredInsights.length} />
+                <AnimatedCounter value={insights.length} />
               </div>
               <div className="text-xs text-gray-600 mt-1">核心洞察</div>
             </div>
@@ -475,67 +534,80 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* One Thing Insight */}
-        {filteredInsights.length > 0 && (
+        {insights.length > 0 && (
           <section className="mb-16">
             <div className="mb-6">
               <h2 className="font-display text-2xl font-bold text-gray-900 mb-2">◈ 核心洞察</h2>
               <p className="text-gray-600">The One Thing · 今日必读</p>
             </div>
             <AnimatePresence mode="wait">
-              <OneThingInsight insights={filteredInsights} dateFilter={dateFilter} />
+              <OneThingInsight insights={insights} dateFilter={dateFilter} />
             </AnimatePresence>
           </section>
         )}
 
         {/* Papers Section */}
-        {filteredPapers.length > 0 && (
-          <section className="mb-16">
-            <SectionHeader icon="📄" label="AI Research Frontier" labelCn="AI 论文前沿" count={filteredPapers.length} color="blue" />
+        <section className="mb-16">
+          <SectionHeader icon="📄" label="AI Research Frontier" labelCn="AI 论文前沿" count={papers.length} color="blue" />
+          {papersQuery.isLoading ? (
+            <LoadingSkeleton />
+          ) : papers.length > 0 ? (
             <div className="grid gap-4">
-              {filteredPapers.map((paper, idx) => (
+              {papers.map((paper, idx) => (
                 <PaperCard key={paper.id} paper={paper} index={idx} />
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4">数据来源：arXiv · HuggingFace Trending Papers</p>
-          </section>
-        )}
+          ) : (
+            <EmptyState label="论文" />
+          )}
+          <p className="text-xs text-gray-500 mt-4">数据来源：arXiv · HuggingFace Trending Papers</p>
+        </section>
 
         {/* News Section */}
-        {filteredNews.length > 0 && (
-          <section className="mb-16">
-            <SectionHeader icon="📰" label="Industry Pulse" labelCn="AI 行业要闻" count={filteredNews.length} color="amber" />
+        <section className="mb-16">
+          <SectionHeader icon="📰" label="Industry Pulse" labelCn="AI 行业要闻" count={news.length} color="amber" />
+          {newsQuery.isLoading ? (
+            <LoadingSkeleton />
+          ) : news.length > 0 ? (
             <div className="grid gap-4">
-              {filteredNews.map((item, idx) => (
+              {news.map((item, idx) => (
                 <NewsCard key={item.id} item={item} index={idx} />
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4">数据来源：TechCrunch · The Verge · VentureBeat · Official Blogs</p>
-          </section>
-        )}
+          ) : (
+            <EmptyState label="新闻" />
+          )}
+          <p className="text-xs text-gray-500 mt-4">数据来源：TechCrunch · The Verge · VentureBeat · Official Blogs</p>
+        </section>
 
         {/* Products Section */}
-        {filteredProducts.length > 0 && (
-          <section className="mb-16">
-            <SectionHeader icon="🛠" label="Product Hunt" labelCn="AI 创新产品" count={filteredProducts.length} color="cyan" />
+        <section className="mb-16">
+          <SectionHeader icon="🛠" label="Product Hunt" labelCn="AI 创新产品" count={products.length} color="cyan" />
+          {productsQuery.isLoading ? (
+            <LoadingSkeleton />
+          ) : products.length > 0 ? (
             <div className="grid gap-4">
-              {filteredProducts.map((product, idx) => (
+              {products.map((product, idx) => (
                 <ProductCard key={product.id} product={product} index={idx} />
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4">数据来源：Product Hunt AI · There's an AI for That · GitHub Trending</p>
-          </section>
-        )}
+          ) : (
+            <EmptyState label="产品" />
+          )}
+          <p className="text-xs text-gray-500 mt-4">数据来源：Product Hunt AI · There's an AI for That · GitHub Trending</p>
+        </section>
 
-        {/* Empty State */}
-        {filteredPapers.length === 0 && filteredNews.length === 0 && filteredProducts.length === 0 && (
+        {/* Empty State - all sections empty */}
+        {!isLoading && papers.length === 0 && news.length === 0 && products.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">该时间段暂无数据</p>
+            <p className="text-gray-500 text-lg mb-2">该时间段暂无数据</p>
+            <p className="text-gray-400 text-sm">数据将在每日 08:00（北京时间）自动更新</p>
           </div>
         )}
 
         {/* Footer */}
         <div className="border-t border-gray-200 pt-8 mt-16 text-center text-xs text-gray-500">
-          <p className="mb-2">AI NEWS NAVIGATOR · {issueNumber} · 扫描完成于 {todayDate}</p>
+          <p className="mb-2">AI NEWS NAVIGATOR · 扫描完成于 {today}</p>
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ export function NeuralNetworkBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodesRef = useRef<Node[]>([]);
   const connectionsRef = useRef<Connection[]>([]);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number>(0);
   const rotationRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
