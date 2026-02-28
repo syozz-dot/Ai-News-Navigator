@@ -437,6 +437,61 @@ function EmptyState({ label }: { label: string }) {
 }
 
 // ─── Main Home Component ──────────────────────────────────────────────────────
+const DEFAULT_VISIBLE = 3;
+
+// ─── Collapsible section list ─────────────────────────────────────────────────
+function CollapsibleList<T>({ 
+  items, 
+  renderItem, 
+  dateFilter,
+  accentColor,
+}: { 
+  items: T[]; 
+  renderItem: (item: T, idx: number) => React.ReactNode;
+  dateFilter: "today" | "week";
+  accentColor: "blue" | "amber" | "cyan";
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldCollapse = dateFilter === "week" && items.length > DEFAULT_VISIBLE;
+  const visibleItems = shouldCollapse && !expanded ? items.slice(0, DEFAULT_VISIBLE) : items;
+  const hiddenCount = items.length - DEFAULT_VISIBLE;
+
+  const colors = {
+    blue: { btn: "text-blue-600 border-blue-200 hover:bg-blue-50", dot: "bg-blue-600" },
+    amber: { btn: "text-amber-600 border-amber-200 hover:bg-amber-50", dot: "bg-amber-600" },
+    cyan: { btn: "text-cyan-600 border-cyan-200 hover:bg-cyan-50", dot: "bg-cyan-600" },
+  };
+  const c = colors[accentColor];
+
+  return (
+    <>
+      <div className="grid gap-4">
+        {visibleItems.map((item, idx) => renderItem(item, idx))}
+      </div>
+      {shouldCollapse && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className={`flex items-center gap-2 px-5 py-2 rounded-full border text-sm font-medium transition-all ${c.btn}`}
+          >
+            {expanded ? (
+              <>
+                <span>收起</span>
+                <span className="text-xs opacity-60">↑</span>
+              </>
+            ) : (
+              <>
+                <span>查看全部 {items.length} 条</span>
+                <span className="text-xs opacity-60">还有 {hiddenCount} 条 ↓</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function Home() {
   const [dateFilter, setDateFilter] = useState<"today" | "week">("week");
 
@@ -552,11 +607,14 @@ export default function Home() {
           {papersQuery.isLoading ? (
             <LoadingSkeleton />
           ) : papers.length > 0 ? (
-            <div className="grid gap-4">
-              {papers.map((paper, idx) => (
+            <CollapsibleList
+              items={papers}
+              dateFilter={dateFilter}
+              accentColor="blue"
+              renderItem={(paper, idx) => (
                 <PaperCard key={paper.id} paper={paper} index={idx} />
-              ))}
-            </div>
+              )}
+            />
           ) : (
             <EmptyState label="论文" />
           )}
@@ -569,11 +627,14 @@ export default function Home() {
           {newsQuery.isLoading ? (
             <LoadingSkeleton />
           ) : news.length > 0 ? (
-            <div className="grid gap-4">
-              {news.map((item, idx) => (
+            <CollapsibleList
+              items={news}
+              dateFilter={dateFilter}
+              accentColor="amber"
+              renderItem={(item, idx) => (
                 <NewsCard key={item.id} item={item} index={idx} />
-              ))}
-            </div>
+              )}
+            />
           ) : (
             <EmptyState label="新闻" />
           )}
@@ -586,11 +647,14 @@ export default function Home() {
           {productsQuery.isLoading ? (
             <LoadingSkeleton />
           ) : products.length > 0 ? (
-            <div className="grid gap-4">
-              {products.map((product, idx) => (
+            <CollapsibleList
+              items={products}
+              dateFilter={dateFilter}
+              accentColor="cyan"
+              renderItem={(product, idx) => (
                 <ProductCard key={product.id} product={product} index={idx} />
-              ))}
-            </div>
+              )}
+            />
           ) : (
             <EmptyState label="产品" />
           )}
