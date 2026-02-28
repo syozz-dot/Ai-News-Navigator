@@ -1,0 +1,39 @@
+{
+  "query": "SELECT paperId, title, titleCn, publishedAt FROM papers ORDER BY publishedAt DESC;\nSELECT newsId, headlineCn, publishedAt FROM news_items ORDER BY publishedAt DESC;\nSELECT productId, name, publishedAt FROM products ORDER BY publishedAt DESC;\nSELECT id, headline, publishedAt FROM insights ORDER BY publishedAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 8iSeDwDvmz89ZkL.root --database RbfyiLrhMviQ3PcSkhsuqX --execute SELECT paperId, title, titleCn, publishedAt FROM papers ORDER BY publishedAt DESC;\nSELECT newsId, headlineCn, publishedAt FROM news_items ORDER BY publishedAt DESC;\nSELECT productId, name, publishedAt FROM products ORDER BY publishedAt DESC;\nSELECT id, headline, publishedAt FROM insights ORDER BY publishedAt DESC;",
+  "rows": [
+    {
+      "paperId": "arxiv-2502-12345",
+      "title": "Scaling Laws for Reasoning in Large Language Models",
+      "titleCn": "大语言模型推理能力的扩展规律",
+      "publishedAt": "2026-02-28 04:48:34"
+    },
+    {
+      "paperId": "arxiv-2502-11111",
+      "title": "Multimodal Chain-of-Thought Reasoning in Vision-Language Models",
+      "titleCn": "视觉语言模型的多模态思维链推理",
+      "publishedAt": "2026-02-27 04:48:34"
+    },
+    {
+      "paperId": "arxiv-2502-09876",
+      "title": "Efficient Fine-tuning of Foundation Models with LoRA Variants",
+      "titleCn": "基于 LoRA 变体的基础模型高效微调",
+      "publishedAt": "2026-02-25 04:48:34"
+    }
+  ],
+  "messages": [
+    "newsId\theadlineCn\tpublishedAt",
+    "news-2502-001\tOpenAI 发布 GPT-5，推理能力大幅提升\t2026-02-28 04:48:34",
+    "news-2502-002\tGoogle DeepMind 发布 Gemini 2.0 Ultra，支持 200 万 token 上下文\t2026-02-27 04:48:34",
+    "news-2502-003\t欧盟 AI 法案开始执行：对 AI 公司意味着什么\t2026-02-25 04:48:34",
+    "productId\tname\tpublishedAt",
+    "ph-2502-001\tCursor AI 2.0\t2026-02-28 04:48:34",
+    "ph-2502-002\tPerplexity Pages\t2026-02-27 04:48:34",
+    "ph-2502-003\tHeyGen 3.0\t2026-02-25 04:48:34",
+    "id\theadline\tpublishedAt",
+    "1\tThe Reasoning Revolution: From Pattern Matching to Deliberate Thinking\t2026-02-28 04:48:34"
+  ],
+  "stdout": "paperId\ttitle\ttitleCn\tpublishedAt\narxiv-2502-12345\tScaling Laws for Reasoning in Large Language Models\t大语言模型推理能力的扩展规律\t2026-02-28 04:48:34\narxiv-2502-11111\tMultimodal Chain-of-Thought Reasoning in Vision-Language Models\t视觉语言模型的多模态思维链推理\t2026-02-27 04:48:34\narxiv-2502-09876\tEfficient Fine-tuning of Foundation Models with LoRA Variants\t基于 LoRA 变体的基础模型高效微调\t2026-02-25 04:48:34\nnewsId\theadlineCn\tpublishedAt\nnews-2502-001\tOpenAI 发布 GPT-5，推理能力大幅提升\t2026-02-28 04:48:34\nnews-2502-002\tGoogle DeepMind 发布 Gemini 2.0 Ultra，支持 200 万 token 上下文\t2026-02-27 04:48:34\nnews-2502-003\t欧盟 AI 法案开始执行：对 AI 公司意味着什么\t2026-02-25 04:48:34\nproductId\tname\tpublishedAt\nph-2502-001\tCursor AI 2.0\t2026-02-28 04:48:34\nph-2502-002\tPerplexity Pages\t2026-02-27 04:48:34\nph-2502-003\tHeyGen 3.0\t2026-02-25 04:48:34\nid\theadline\tpublishedAt\n1\tThe Reasoning Revolution: From Pattern Matching to Deliberate Thinking\t2026-02-28 04:48:34\n",
+  "stderr": "",
+  "execution_time_ms": 577
+}
