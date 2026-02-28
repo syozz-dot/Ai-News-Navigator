@@ -1,3 +1,10 @@
+/*
+ * AI News Navigator — Google Material Design 3 (White + Blue)
+ * Design Philosophy: Clean, professional, accessible
+ * Colors: White background, Google Blue primary, light gray accents
+ * Fonts: Inter (headings) + Noto Sans SC (Chinese)
+ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -40,77 +47,67 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Custom material colors */
+  --color-material-blue: var(--material-blue);
+  --color-material-amber: var(--material-amber);
+  --color-material-cyan: var(--material-cyan);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
-}
-
-.dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --radius: 0.25rem;
+  
+  /* Google Material Design 3 Palette (White + Blue) */
+  --background: #FFFFFF;
+  --foreground: #1F2937;
+  --card: #FFFFFF;
+  --card-foreground: #1F2937;
+  --popover: #FFFFFF;
+  --popover-foreground: #1F2937;
+  
+  /* Google Blue as primary */
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #F3F4F6;
+  --secondary-foreground: #374151;
+  --muted: #E5E7EB;
+  --muted-foreground: #6B7280;
+  --accent: #F59E0B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #F3F4F6;
+  --ring: #3B82F6;
+  
+  /* Custom material colors */
+  --material-blue: #3B82F6;
+  --material-amber: #F59E0B;
+  --material-cyan: #06B6D4;
+  --surface-1: #FFFFFF;
+  --surface-2: #F9FAFB;
+  --surface-3: #F3F4F6;
+  
+  /* Charts */
+  --chart-1: #3B82F6;
+  --chart-2: #F59E0B;
+  --chart-3: #06B6D4;
+  --chart-4: #8B5CF6;
+  --chart-5: #EF4444;
+  
+  /* Sidebar */
+  --sidebar: #F9FAFB;
+  --sidebar-foreground: #1F2937;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F3F4F6;
+  --sidebar-accent-foreground: #374151;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #3B82F6;
 }
 
 @layer base {
@@ -119,6 +116,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -134,24 +136,11 @@
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
 
@@ -162,16 +151,181 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1400px;
     }
+  }
+
+  /* Card styles with subtle shadow */
+  .card-material {
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  }
+  
+  .card-material:hover {
+    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.12), 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    border-color: #BFDBFE;
+  }
+
+  /* Material border styles */
+  .border-material {
+    border: 1px solid #E5E7EB;
+  }
+  
+  .border-material-blue {
+    border: 1px solid #3B82F6;
+  }
+  
+  .border-material-amber {
+    border: 1px solid #F59E0B;
+  }
+  
+  .border-material-cyan {
+    border: 1px solid #06B6D4;
+  }
+
+  /* Pulse dot animation */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  
+  .pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  /* Gradient background animation */
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(-45deg, #FFFFFF, #F0F4FF, #F0F9FF, #FFFFFF);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  /* Stat card styles */
+  .stat-card {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    border-color: #BFDBFE;
+  }
+
+  /* Section header with gradient underline */
+  .section-header {
+    position: relative;
+    padding-bottom: 1rem;
+  }
+  
+  .section-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #3B82F6 0%, #06B6D4 50%, #F59E0B 100%);
+    opacity: 0.3;
+  }
+
+  /* Blink cursor */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  
+  .blink {
+    animation: blink 1s step-end infinite;
+  }
+
+  /* Font utilities */
+  .font-display {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .font-cn {
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  /* Tag styles - Material Design */
+  .tag-blue {
+    background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+    color: #1E40AF;
+    border: 1px solid #93C5FD;
+    font-family: 'Inter', monospace;
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  }
+  
+  .tag-amber {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FCD34D 100%);
+    color: #92400E;
+    border: 1px solid #FBBF24;
+    font-family: 'Inter', monospace;
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+  }
+  
+  .tag-cyan {
+    background: linear-gradient(135deg, #CFFAFE 0%, #A5F3FC 100%);
+    color: #0E7490;
+    border: 1px solid #67E8F9;
+    font-family: 'Inter', monospace;
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(6, 182, 212, 0.1);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F9FAFB;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
   }
 }

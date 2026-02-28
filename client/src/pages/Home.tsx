@@ -1,25 +1,543 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
-
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
+/*
+ * AI News Navigator — Home Page
+ * Design: Google Material Design 3 (White + Blue)
+ * Colors: White background, Google Blue primary, light gray accents
+ * Layout: Fixed left nav + main content
  */
-export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { papers, news, products, oneThingInsight, todayDate, issueNumber } from "@/lib/data";
+import type { Paper, NewsItem, Product } from "@/lib/data";
+import { NeuralNetworkBg } from "@/components/NeuralNetworkBg";
+
+// ─── Animated counter ───────────────────────────────────────────────────────
+function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= value) { setCount(value); clearInterval(timer); }
+      else setCount(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [value, duration]);
+  return <span>{count}</span>;
+}
+
+// ─── Get date range helper ───────────────────────────────────────────────────
+function getDateRange(type: "today" | "week"): { start: Date; end: Date } {
+  const today = new Date(todayDate);
+  if (type === "today") {
+    return { start: today, end: today };
+  } else {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return { start: weekAgo, end: today };
+  }
+}
+
+function isDateInRange(dateStr: string, range: { start: Date; end: Date }): boolean {
+  const date = new Date(dateStr);
+  return date >= range.start && date <= range.end;
+}
+
+// ─── Section header ──────────────────────────────────────────────────────────
+function SectionHeader({
+  icon, label, labelCn, count, color
+}: { icon: string; label: string; labelCn: string; count: number; color: "blue" | "amber" | "cyan" }) {
+  const colors = {
+    blue: { border: "border-blue-200", text: "text-blue-600", tag: "tag-blue" },
+    amber: { border: "border-amber-200", text: "text-amber-600", tag: "tag-amber" },
+    cyan: { border: "border-cyan-200", text: "text-cyan-600", tag: "tag-cyan" },
+  };
+  const c = colors[color];
+  return (
+    <div className={`flex items-center gap-4 pb-4 border-b ${c.border} mb-8`}>
+      <span className="text-2xl">{icon}</span>
+      <div className="flex-1">
+        <div className={`font-display font-bold text-xl ${c.text}`}>{label}</div>
+        <div className="font-cn text-sm text-gray-500 mt-0.5">{labelCn}</div>
+      </div>
+      <span className={`${c.tag}`}>{count} ITEMS</span>
+    </div>
+  );
+}
+
+// ─── Paper card ──────────────────────────────────────────────────────────────
+function PaperCard({ paper, index }: { paper: Paper; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, duration: 0.5 }}
+      className="card-material bg-white border border-gray-200 rounded-lg cursor-pointer group"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="p-5">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="flex-shrink-0 mt-1">
+            <span className="tag-blue">{paper.tag}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-500 mb-1">
+              [{paper.id}] · {paper.submitted} · {paper.source}
+            </div>
+            <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-blue-600 transition-colors">
+              {paper.title}
+            </h3>
+            <div className="font-cn text-gray-600 text-xs mt-1">{paper.titleCn}</div>
+          </div>
+          <div className="flex-shrink-0 flex flex-col items-center gap-1">
+            <div className="font-display text-blue-600 text-lg font-bold leading-none">
+              {paper.impactScore}
+            </div>
+            <div className="text-xs text-gray-500">IMPACT</div>
+          </div>
+        </div>
+
+        {/* Core principle */}
+        <div className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+          {paper.corePrinciple}
+        </div>
+
+        {/* Expand indicator */}
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors">
+            {expanded ? "[ COLLAPSE ]" : "[ PM 视角 ↓ ]"}
+          </span>
+        </div>
+      </div>
+
+      {/* Expanded PM insights */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 bg-gray-50">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-blue">底层逻辑</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.bottomLogic}</p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-amber">落地想象</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.productImagination}</p>
+              </div>
+              <a
+                href={paper.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                → VIEW ON ARXIV
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── News card ───────────────────────────────────────────────────────────────
+function NewsCard({ item, index }: { item: NewsItem; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const urgencyColors = {
+    critical: { tag: "tag-amber", dot: "bg-amber-500", label: "CRITICAL" },
+    high: { tag: "tag-cyan", dot: "bg-cyan-500", label: "HIGH" },
+    medium: { tag: "tag-blue", dot: "bg-blue-500", label: "MEDIUM" },
+  };
+  const u = urgencyColors[item.urgency];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.12, duration: 0.5 }}
+      className="card-material bg-white border border-gray-200 rounded-lg cursor-pointer group"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="p-5">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="flex-shrink-0 mt-0.5 flex flex-col gap-1.5">
+            <span className={`${u.tag}`}>{item.tag}</span>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full ${u.dot} pulse-dot`} />
+              <span className="text-xs text-gray-500">{u.label}</span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-500 mb-1">
+              [{item.id}] · {item.time} · {item.source}
+            </div>
+            <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-amber-600 transition-colors">
+              {item.headline}
+            </h3>
+            <div className="font-cn text-gray-600 text-xs mt-1">{item.headlineCn}</div>
+          </div>
+        </div>
+
+        <p className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+          {item.summary}
+        </p>
+
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-500 group-hover:text-amber-600 transition-colors">
+            {expanded ? "[ COLLAPSE ]" : "[ CPO 解读 ↓ ]"}
+          </span>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 bg-gray-50">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-amber">权力变动</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: item.powerShift.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-600">$1</strong>') }}
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-cyan">商业启示</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: item.businessInsight.replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-600">$1</strong>') }}
+                />
+              </div>
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 transition-colors"
+              >
+                → READ SOURCE
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Product card ─────────────────────────────────────────────────────────────
+function ProductCard({ product, index }: { product: Product; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const verdictConfig = {
+    "real-need": { label: "真实需求 ✓", color: "text-blue-600", bg: "bg-blue-50" },
+    "pseudo-need": { label: "伪需求 ✗", color: "text-red-600", bg: "bg-red-50" },
+    "watch": { label: "持续观察 ◎", color: "text-amber-600", bg: "bg-amber-50" },
+  };
+  const v = verdictConfig[product.verdict];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.15, duration: 0.5 }}
+      className="card-material bg-white border border-gray-200 rounded-lg cursor-pointer group"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="p-5">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <span className="tag-cyan">{product.tag}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-500 mb-1">
+              [{product.id}] · {product.source}
+            </div>
+            <h3 className="font-display font-bold text-gray-900 text-base leading-tight group-hover:text-cyan-600 transition-colors">
+              {product.name}
+            </h3>
+            <p className="text-gray-600 text-xs font-cn mt-1 leading-snug">{product.tagline}</p>
+          </div>
+          {product.upvotes && (
+            <div className="flex-shrink-0 flex flex-col items-center">
+              <div className="font-display text-cyan-600 text-sm font-bold">▲{product.upvotes}</div>
+              <div className="text-xs text-gray-500">VOTES</div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-500 group-hover:text-cyan-600 transition-colors">
+            {expanded ? "[ COLLAPSE ]" : "[ 产品解构 ↓ ]"}
+          </span>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className={`px-5 pb-5 border-t border-gray-200 pt-4 space-y-4 ${v.bg}`}>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-blue">痛点分析</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.painPointAnalysis}</p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="tag-cyan">交互创新</span>
+                </div>
+                <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.interactionInnovation}</p>
+              </div>
+              <div className={`inline-block px-3 py-1.5 rounded text-xs font-semibold ${v.color}`}>
+                {v.label}
+              </div>
+              <a
+                href={product.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs text-cyan-600 hover:text-cyan-700 transition-colors"
+              >
+                → VISIT PRODUCT
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── One Thing Insight ────────────────────────────────────────────────────────
+function OneThingInsight({ insights, dateFilter }: { insights: typeof oneThingInsight[]; dateFilter: "today" | "week" }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    if (dateFilter === "week" && insights.length > 1) {
+      timerRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % insights.length);
+      }, 10000); // 10 seconds
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [dateFilter, insights.length]);
+
+  const current = insights[currentIndex];
+
+  return (
+    <motion.div
+      key={currentIndex}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.5 }}
+      className="card-material bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-lg p-6"
+    >
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-display font-bold text-lg text-gray-900">{current.headline}</h3>
+          <p className="text-sm text-blue-600 font-semibold mt-1">{current.subheadline}</p>
+        </div>
+        <p className="text-gray-700 text-sm font-cn leading-relaxed">{current.content}</p>
+        <div className="flex items-center justify-between pt-4 border-t border-blue-200">
+          <span className="text-xs text-gray-500">来源：{current.source}</span>
+          <span className="text-xs font-semibold text-blue-600">{current.urgency}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main Home Component ──────────────────────────────────────────────────────
+export default function Home() {
+  const [dateFilter, setDateFilter] = useState<"today" | "week">("week");
+  const dateRange = getDateRange(dateFilter);
+
+  // Filter data by date
+  const filteredPapers = papers.filter((p) => isDateInRange(p.date, dateRange));
+  const filteredNews = news.filter((n) => isDateInRange(n.date, dateRange));
+  const filteredProducts = products.filter((p) => isDateInRange(p.date, dateRange));
+  const filteredInsights = [oneThingInsight].filter((i) => isDateInRange(i.date, dateRange));
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden" style={{ minHeight: '320px' }}>
+        {/* Static Illustration Background */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            backgroundImage: 'url(https://d2xsxph8kpxj0f.cloudfront.net/310519663385608372/RbfyiLrhMviQ3PcSkhsuqX/hero-illustration_3974c84e.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-white/60" />
+        
+        {/* Content */}
+        <div className="relative text-center z-10 py-16 px-4">
+          <h1 className="font-display text-4xl font-bold text-gray-900 mb-2">
+            AI NEWS NAVIGATOR
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">AI 新闻导航</p>
+          
+          {/* Date Filter Tabs */}
+          <div className="flex justify-center gap-4 mb-8">
+            <button
+              onClick={() => setDateFilter("week")}
+              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                dateFilter === "week"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-white/80 text-gray-700 hover:bg-white border border-gray-200"
+              }`}
+            >
+              📅 最近一周
+            </button>
+            <button
+              onClick={() => setDateFilter("today")}
+              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                dateFilter === "today"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-white/80 text-gray-700 hover:bg-white border border-gray-200"
+              }`}
+            >
+              📅 今日动态
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-2xl font-bold text-blue-600">
+                <AnimatedCounter value={filteredPapers.length} />
+              </div>
+              <div className="text-xs text-gray-600 mt-1">论文扫描</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-2xl font-bold text-amber-600">
+                <AnimatedCounter value={filteredNews.length} />
+              </div>
+              <div className="text-xs text-gray-600 mt-1">行业要闻</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-2xl font-bold text-cyan-600">
+                <AnimatedCounter value={filteredProducts.length} />
+              </div>
+              <div className="text-xs text-gray-600 mt-1">创新产品</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-gray-200 shadow-sm">
+              <div className="text-2xl font-bold text-gray-900">
+                <AnimatedCounter value={filteredInsights.length} />
+              </div>
+              <div className="text-xs text-gray-600 mt-1">核心洞察</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* One Thing Insight */}
+        {filteredInsights.length > 0 && (
+          <section className="mb-16">
+            <div className="mb-6">
+              <h2 className="font-display text-2xl font-bold text-gray-900 mb-2">◈ 核心洞察</h2>
+              <p className="text-gray-600">The One Thing · 今日必读</p>
+            </div>
+            <AnimatePresence mode="wait">
+              <OneThingInsight insights={filteredInsights} dateFilter={dateFilter} />
+            </AnimatePresence>
+          </section>
+        )}
+
+        {/* Papers Section */}
+        {filteredPapers.length > 0 && (
+          <section className="mb-16">
+            <SectionHeader icon="📄" label="AI Research Frontier" labelCn="AI 论文前沿" count={filteredPapers.length} color="blue" />
+            <div className="grid gap-4">
+              {filteredPapers.map((paper, idx) => (
+                <PaperCard key={paper.id} paper={paper} index={idx} />
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4">数据来源：arXiv · HuggingFace Trending Papers</p>
+          </section>
+        )}
+
+        {/* News Section */}
+        {filteredNews.length > 0 && (
+          <section className="mb-16">
+            <SectionHeader icon="📰" label="Industry Pulse" labelCn="AI 行业要闻" count={filteredNews.length} color="amber" />
+            <div className="grid gap-4">
+              {filteredNews.map((item, idx) => (
+                <NewsCard key={item.id} item={item} index={idx} />
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4">数据来源：TechCrunch · The Verge · VentureBeat · Official Blogs</p>
+          </section>
+        )}
+
+        {/* Products Section */}
+        {filteredProducts.length > 0 && (
+          <section className="mb-16">
+            <SectionHeader icon="🛠" label="Product Hunt" labelCn="AI 创新产品" count={filteredProducts.length} color="cyan" />
+            <div className="grid gap-4">
+              {filteredProducts.map((product, idx) => (
+                <ProductCard key={product.id} product={product} index={idx} />
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4">数据来源：Product Hunt AI · There's an AI for That · GitHub Trending</p>
+          </section>
+        )}
+
+        {/* Empty State */}
+        {filteredPapers.length === 0 && filteredNews.length === 0 && filteredProducts.length === 0 && (
+          <div className="text-center py-16">
+            <p className="text-gray-500 text-lg">该时间段暂无数据</p>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 pt-8 mt-16 text-center text-xs text-gray-500">
+          <p className="mb-2">AI NEWS NAVIGATOR · {issueNumber} · 扫描完成于 {todayDate}</p>
+        </div>
+      </div>
     </div>
   );
 }
