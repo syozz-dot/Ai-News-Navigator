@@ -19,156 +19,188 @@ export function ParticleBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const PARTICLE_COUNT = 90;
-    const MAX_DIST = 140;
-    const MOUSE_RADIUS = 180;
+    const PARTICLE_COUNT = 80;
+    const MAX_DIST = 130;
+    const MOUSE_RADIUS = 160;
 
     let width = 0;
     let height = 0;
-    let animId = 0;
-    const mouse = { x: -9999, y: -9999 };
-    const particles: Particle[] = [];
 
-    function initParticles() {
-      particles.length = 0;
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.6,
-          vy: (Math.random() - 0.5) * 0.6,
-          radius: Math.random() * 2 + 1,
-          opacity: Math.random() * 0.5 + 0.25,
-        });
-      }
-    }
+    // Use a mutable state object to avoid stale closure issues with animId
+    const state = {
+      animId: 0,
+      running: false,
+      particles: [] as Particle[],
+      mouse: { x: -9999, y: -9999 },
+    };
 
     function resize() {
-      const rect = canvas!.parentElement!.getBoundingClientRect();
-      width = rect.width || window.innerWidth;
-      height = rect.height || 320;
+      const parent = canvas!.parentElement;
+      if (!parent) return;
+      const rect = parent.getBoundingClientRect();
+      width = rect.width > 0 ? rect.width : window.innerWidth;
+      height = rect.height > 0 ? rect.height : 320;
       canvas!.width = width;
       canvas!.height = height;
     }
 
-    function draw() {
+    function createParticle(): Particle {
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: (Math.random() - 0.5) * 0.55,
+        radius: Math.random() * 1.8 + 0.8,
+        opacity: Math.random() * 0.45 + 0.2,
+      };
+    }
+
+    function initParticles() {
+      state.particles = Array.from({ length: PARTICLE_COUNT }, createParticle);
+    }
+
+    function tick() {
+      // Schedule next frame FIRST — this ensures the loop never silently dies
+      state.animId = requestAnimationFrame(tick);
+
       ctx!.clearRect(0, 0, width, height);
+
+      const { particles, mouse } = state;
 
       for (const p of particles) {
         // Mouse attraction
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MOUSE_RADIUS && dist > 0) {
-          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
-          p.vx += (dx / dist) * force * 0.05;
-          p.vy += (dy / dist) * force * 0.05;
+        const mdx = mouse.x - p.x;
+        const mdy = mouse.y - p.y;
+        const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+        if (mdist < MOUSE_RADIUS && mdist > 0.5) {
+          const force = ((MOUSE_RADIUS - mdist) / MOUSE_RADIUS) * 0.04;
+          p.vx += (mdx / mdist) * force;
+          p.vy += (mdy / mdist) * force;
         }
 
         // Damping
-        p.vx *= 0.97;
-        p.vy *= 0.97;
+        p.vx *= 0.975;
+        p.vy *= 0.975;
 
-        // Clamp speed
-        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        if (speed > 1.8) {
-          p.vx = (p.vx / speed) * 1.8;
-          p.vy = (p.vy / speed) * 1.8;
+        // Speed cap
+        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (spd > 1.6) {
+          p.vx = (p.vx / spd) * 1.6;
+          p.vy = (p.vy / spd) * 1.6;
+        }
+
+        // Minimum drift — prevents particles from fully stopping
+        if (spd < 0.08) {
+          p.vx += (Math.random() - 0.5) * 0.12;
+          p.vy += (Math.random() - 0.5) * 0.12;
         }
 
         p.x += p.vx;
         p.y += p.vy;
 
         // Wrap edges
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
+        if (p.x < -5) p.x = width + 5;
+        else if (p.x > width + 5) p.x = -5;
+        if (p.y < -5) p.y = height + 5;
+        else if (p.y > height + 5) p.y = -5;
 
-        // Draw particle dot
+        // Draw dot
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(59, 130, 246, ${p.opacity})`;
+        ctx!.fillStyle = `rgba(59,130,246,${p.opacity})`;
         ctx!.fill();
       }
 
-      // Draw connections between nearby particles
+      // Draw particle-to-particle connection lines
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
           const b = particles[j];
           const dx = a.x - b.x;
           const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < MAX_DIST) {
-            const alpha = (1 - dist / MAX_DIST) * 0.3;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < MAX_DIST) {
             ctx!.beginPath();
             ctx!.moveTo(a.x, a.y);
             ctx!.lineTo(b.x, b.y);
-            ctx!.strokeStyle = `rgba(99, 155, 255, ${alpha})`;
-            ctx!.lineWidth = 0.8;
+            ctx!.strokeStyle = `rgba(99,155,255,${(1 - d / MAX_DIST) * 0.28})`;
+            ctx!.lineWidth = 0.7;
             ctx!.stroke();
           }
         }
 
-        // Mouse connections
+        // Mouse connection lines
         const p = particles[i];
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MOUSE_RADIUS) {
-          const alpha = (1 - dist / MOUSE_RADIUS) * 0.6;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < MOUSE_RADIUS) {
           ctx!.beginPath();
           ctx!.moveTo(p.x, p.y);
           ctx!.lineTo(mouse.x, mouse.y);
-          ctx!.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
-          ctx!.lineWidth = 1;
+          ctx!.strokeStyle = `rgba(59,130,246,${(1 - d / MOUSE_RADIUS) * 0.55})`;
+          ctx!.lineWidth = 0.9;
           ctx!.stroke();
         }
       }
-
-      animId = requestAnimationFrame(draw);
     }
 
+    function startLoop() {
+      if (state.running) return;
+      state.running = true;
+      state.animId = requestAnimationFrame(tick);
+    }
+
+    function stopLoop() {
+      state.running = false;
+      cancelAnimationFrame(state.animId);
+    }
+
+    // Resume animation when tab becomes visible again after being hidden
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        stopLoop();
+        state.running = false;
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    }
+
+    // Mouse tracking on the canvas element
     const onMouseMove = (e: MouseEvent) => {
       const rect = canvas!.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
+      state.mouse.x = e.clientX - rect.left;
+      state.mouse.y = e.clientY - rect.top;
     };
     const onMouseLeave = () => {
-      mouse.x = -9999;
-      mouse.y = -9999;
+      state.mouse.x = -9999;
+      state.mouse.y = -9999;
     };
 
-    // Use ResizeObserver to detect when the container is ready
+    // Keep canvas size in sync with parent
     const ro = new ResizeObserver(() => {
       resize();
-      if (particles.length === 0) {
-        initParticles();
-      }
     });
     ro.observe(canvas.parentElement!);
 
-    // Also do an initial setup with a small delay to ensure layout is complete
-    const initTimer = setTimeout(() => {
-      resize();
-      initParticles();
-      cancelAnimationFrame(animId);
-      draw();
-    }, 50);
+    // Bootstrap
+    resize();
+    initParticles();
+    startLoop();
 
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseleave", onMouseLeave);
-    window.addEventListener("resize", () => {
-      resize();
-    });
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("resize", resize);
 
     return () => {
-      clearTimeout(initTimer);
-      cancelAnimationFrame(animId);
+      stopLoop();
       ro.disconnect();
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseleave", onMouseLeave);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 

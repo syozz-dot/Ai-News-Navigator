@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import type { Paper, NewsItem, Product, Insight } from "../../../drizzle/schema";
-import { GlowNoiseBackground } from "@/components/GlowNoiseBackground";
+import { ParticleBackground } from "@/components/ParticleBackground";
 
 // ─── Animated counter ───────────────────────────────────────────────────────
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -513,8 +513,8 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden" style={{ minHeight: '320px', background: 'linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 50%, #f5f8ff 100%)' }}>
-        {/* Glow + Noise Background (方案B) */}
-        <GlowNoiseBackground />
+        {/* Particle Flow Background (方案A) */}
+        <ParticleBackground />
         {/* Subtle overlay for text readability */}
         <div className="absolute inset-0 bg-white/20" />
 
