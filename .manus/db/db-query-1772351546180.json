@@ -1,0 +1,40 @@
+{
+  "query": "SELECT newsId, headline, publishedAt, createdAt FROM news_items ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 8iSeDwDvmz89ZkL.root --database RbfyiLrhMviQ3PcSkhsuqX --execute SELECT newsId, headline, publishedAt, createdAt FROM news_items ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "newsId": "news-1772349865051-6",
+      "headline": "Google's Opal just quietly showed enterprise teams the new blueprint for building AI agents",
+      "publishedAt": "2026-02-27 23:25:00",
+      "createdAt": "2026-03-01 07:24:28"
+    },
+    {
+      "newsId": "news-1772349859967-5",
+      "headline": "Anthropic vs. The Pentagon: what enterprises should do",
+      "publishedAt": "2026-02-28 06:16:00",
+      "createdAt": "2026-03-01 07:24:25"
+    },
+    {
+      "newsId": "news-1772349855538-4",
+      "headline": "Vibe coding with overeager AI: Lessons learned from treating Google AI Studio like a teammate",
+      "publishedAt": "2026-02-28 08:00:00",
+      "createdAt": "2026-03-01 07:24:19"
+    },
+    {
+      "newsId": "news-1772349847035-3",
+      "headline": "The billion-dollar infrastructure deals powering the AI boom",
+      "publishedAt": "2026-02-28 20:41:55",
+      "createdAt": "2026-03-01 07:24:11"
+    },
+    {
+      "newsId": "news-1772349842923-2",
+      "headline": "Anthropic’s Claude rises to No. 2 in the App Store following Pentagon dispute",
+      "publishedAt": "2026-02-28 21:05:06",
+      "createdAt": "2026-03-01 07:24:07"
+    }
+  ],
+  "messages": [],
+  "stdout": "newsId\theadline\tpublishedAt\tcreatedAt\nnews-1772349865051-6\tGoogle's Opal just quietly showed enterprise teams the new blueprint for building AI agents\t2026-02-27 23:25:00\t2026-03-01 07:24:28\nnews-1772349859967-5\tAnthropic vs. The Pentagon: what enterprises should do\t2026-02-28 06:16:00\t2026-03-01 07:24:25\nnews-1772349855538-4\tVibe coding with overeager AI: Lessons learned from treating Google AI Studio like a teammate\t2026-02-28 08:00:00\t2026-03-01 07:24:19\nnews-1772349847035-3\tThe billion-dollar infrastructure deals powering the AI boom\t2026-02-28 20:41:55\t2026-03-01 07:24:11\nnews-1772349842923-2\tAnthropic’s Claude rises to No. 2 in the App Store following Pentagon dispute\t2026-02-28 21:05:06\t2026-03-01 07:24:07\n",
+  "stderr": "",
+  "execution_time_ms": 349
+}

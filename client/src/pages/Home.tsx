@@ -552,7 +552,7 @@ export default function Home() {
                   : "bg-white/80 text-gray-700 hover:bg-white border border-gray-200"
               }`}
             >
-              ⚡ 今日动态
+              ✨ 今日动态
             </button>
           </div>
 
