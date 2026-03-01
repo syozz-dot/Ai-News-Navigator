@@ -542,7 +542,7 @@ export default function Home() {
                   : "bg-white/80 text-gray-700 hover:bg-white border border-gray-200"
               }`}
             >
-              📅 最近一周
+              🗓 最近一周
             </button>
             <button
               onClick={() => setDateFilter("today")}
@@ -552,7 +552,7 @@ export default function Home() {
                   : "bg-white/80 text-gray-700 hover:bg-white border border-gray-200"
               }`}
             >
-              📅 今日动态
+              ⚡ 今日动态
             </button>
           </div>
 
@@ -672,6 +672,17 @@ export default function Home() {
         {/* Footer */}
         <div className="border-t border-gray-200 pt-8 mt-16 text-center text-xs text-gray-500">
           <p className="mb-2">AI NEWS NAVIGATOR · 扫描完成于 {today}</p>
+          <p className="mt-1">
+            Made by{" "}
+            <span className="font-semibold text-gray-700">Syozz</span>
+            {" · "}
+            <a
+              href="mailto:syozz0124@gmail.com"
+              className="text-blue-500 hover:text-blue-700 transition-colors"
+            >
+              syozz0124@gmail.com
+            </a>
+          </p>
         </div>
       </div>
     </div>
