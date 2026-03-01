@@ -16,3 +16,4 @@
 - [x] UI 优化：footer 添加作者信息（Syozz · syozz0124@gmail.com）
 - [ ] 修复「今日动态」数据显示 0 的 bug：改为按 createdAt（入库时间）过滤
 - [ ] 今日动态图标改为 ✨
+- [x] Hero 区域背景替换为动态粒子流（Canvas 粒子网络 + 鼠标交互）
