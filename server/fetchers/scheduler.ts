@@ -6,7 +6,7 @@
 import { fetchArxivPapers } from "./arxiv";
 import { fetchAINews } from "./news";
 import { fetchAIProducts, generateDailyInsight } from "./products";
-import { getPapers, getNews, getProducts, upsertInsight } from "../db";
+import { getRecentPapers, getRecentNews, getRecentProducts, upsertInsight } from "../db";
 import { notifyOwner } from "../_core/notification";
 
 let isRunning = false;
@@ -47,13 +47,11 @@ export async function runDailyUpdate(): Promise<{
 
     // 4. Generate daily insight
     console.log("[Scheduler] Step 4/4: Generating daily insight...");
-    const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const recentPapers = await getPapers(startOfDay);
-    const recentNews = await getNews(startOfDay);
-    const recentProducts = await getProducts(startOfDay);
+    // Use recently fetched items (not date-filtered) to avoid timezone issues
+    // where arXiv publishedAt may be older than today's crawl time
+    const recentPapers = await getRecentPapers(6);
+    const recentNews = await getRecentNews(6);
+    const recentProducts = await getRecentProducts(5);
 
     const paperTitles = recentPapers.map((p) => p.titleCn || p.title);
     const newsTitles = recentNews.map((n) => n.headlineCn || n.headline);

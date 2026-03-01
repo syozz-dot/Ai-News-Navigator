@@ -101,6 +101,12 @@ export async function getPapers(startDate?: Date, endDate?: Date) {
     .orderBy(desc(papers.publishedAt));
 }
 
+export async function getRecentPapers(limit = 6) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(papers).orderBy(desc(papers.id)).limit(limit);
+}
+
 export async function upsertPaper(paper: InsertPaper) {
   const db = await getDb();
   if (!db) return;
@@ -121,6 +127,12 @@ export async function getNews(startDate?: Date, endDate?: Date) {
     .orderBy(desc(newsItems.publishedAt));
 }
 
+export async function getRecentNews(limit = 6) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(newsItems).orderBy(desc(newsItems.id)).limit(limit);
+}
+
 export async function upsertNewsItem(item: InsertNewsItem) {
   const db = await getDb();
   if (!db) return;
@@ -139,6 +151,12 @@ export async function getProducts(startDate?: Date, endDate?: Date) {
   return db.select().from(products)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(products.publishedAt));
+}
+
+export async function getRecentProducts(limit = 5) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).orderBy(desc(products.id)).limit(limit);
 }
 
 export async function upsertProduct(product: InsertProduct) {

@@ -1,0 +1,30 @@
+{
+  "query": "\nSELECT 'papers' as type, COUNT(*) as count, MAX(publishedAt) as latest FROM papers WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'news_items', COUNT(*), MAX(publishedAt) FROM news_items WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'products', COUNT(*), MAX(publishedAt) FROM products WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'insights', COUNT(*), MAX(publishedAt) FROM insights WHERE publishedAt >= '2026-03-01';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 8iSeDwDvmz89ZkL.root --database RbfyiLrhMviQ3PcSkhsuqX --execute \nSELECT 'papers' as type, COUNT(*) as count, MAX(publishedAt) as latest FROM papers WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'news_items', COUNT(*), MAX(publishedAt) FROM news_items WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'products', COUNT(*), MAX(publishedAt) FROM products WHERE publishedAt >= '2026-03-01'\nUNION ALL\nSELECT 'insights', COUNT(*), MAX(publishedAt) FROM insights WHERE publishedAt >= '2026-03-01';\n",
+  "rows": [
+    {
+      "type": "products",
+      "count": "0",
+      "latest": "NULL"
+    },
+    {
+      "type": "news_items",
+      "count": "1",
+      "latest": "2026-03-01 00:08:58"
+    },
+    {
+      "type": "insights",
+      "count": "1",
+      "latest": "2026-03-01 07:24:39"
+    },
+    {
+      "type": "papers",
+      "count": "0",
+      "latest": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "type\tcount\tlatest\nproducts\t0\tNULL\nnews_items\t1\t2026-03-01 00:08:58\ninsights\t1\t2026-03-01 07:24:39\npapers\t0\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 377
+}
