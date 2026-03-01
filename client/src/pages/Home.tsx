@@ -66,14 +66,14 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
             <span className="tag-blue">{paper.tag || "AI"}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-xs md:text-sm text-gray-500 mb-1">
               [{paper.paperId}] · {paper.submitted} · {paper.source}
             </div>
-            <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-blue-600 transition-colors">
+            <h3 className="font-display font-semibold text-gray-900 text-sm md:text-base leading-snug group-hover:text-blue-600 transition-colors">
               {paper.title}
             </h3>
             {paper.titleCn && (
-              <div className="font-cn text-gray-600 text-xs mt-1">{paper.titleCn}</div>
+              <div className="font-cn text-gray-600 text-xs md:text-sm mt-1">{paper.titleCn}</div>
             )}
           </div>
           {paper.impactScore != null && (
@@ -87,7 +87,7 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
         </div>
 
         {paper.corePrinciple && (
-          <div className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+          <div className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed line-clamp-2">
             {paper.corePrinciple}
           </div>
         )}
@@ -115,7 +115,7 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="tag-blue">底层逻辑</span>
                   </div>
-                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.bottomLogic}</p>
+                  <p className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed">{paper.bottomLogic}</p>
                 </div>
               )}
               {paper.productImagination && (
@@ -123,7 +123,7 @@ function PaperCard({ paper, index }: { paper: Paper; index: number }) {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="tag-amber">落地想象</span>
                   </div>
-                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{paper.productImagination}</p>
+                  <p className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed">{paper.productImagination}</p>
                 </div>
               )}
               {paper.url && (
@@ -174,20 +174,20 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-xs md:text-sm text-gray-500 mb-1">
               [{item.newsId}] · {item.time} · {item.source}
             </div>
-            <h3 className="font-display font-semibold text-gray-900 text-sm leading-snug group-hover:text-amber-600 transition-colors">
+            <h3 className="font-display font-semibold text-gray-900 text-sm md:text-base leading-snug group-hover:text-amber-600 transition-colors">
               {item.headline}
             </h3>
             {item.headlineCn && (
-              <div className="font-cn text-gray-600 text-xs mt-1">{item.headlineCn}</div>
+              <div className="font-cn text-gray-600 text-xs md:text-sm mt-1">{item.headlineCn}</div>
             )}
           </div>
         </div>
 
         {item.summary && (
-          <p className="text-gray-700 text-xs font-cn leading-relaxed line-clamp-2">
+          <p className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed line-clamp-2">
             {item.summary}
           </p>
         )}
@@ -274,14 +274,14 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             <span className="tag-cyan">{product.tag || "AI"}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-xs md:text-sm text-gray-500 mb-1">
               [{product.productId}] · {product.source}
             </div>
-            <h3 className="font-display font-bold text-gray-900 text-base leading-tight group-hover:text-cyan-600 transition-colors">
+            <h3 className="font-display font-bold text-gray-900 text-base md:text-lg leading-tight group-hover:text-cyan-600 transition-colors">
               {product.name}
             </h3>
             {product.tagline && (
-              <p className="text-gray-600 text-xs font-cn mt-1 leading-snug">{product.tagline}</p>
+              <p className="text-gray-600 text-xs md:text-sm font-cn mt-1 leading-snug">{product.tagline}</p>
             )}
           </div>
           {product.upvotes != null && (
@@ -315,7 +315,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="tag-blue">痛点分析</span>
                   </div>
-                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.painPointAnalysis}</p>
+                  <p className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed">{product.painPointAnalysis}</p>
                 </div>
               )}
               {product.interactionInnovation && (
@@ -323,7 +323,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="tag-cyan">交互创新</span>
                   </div>
-                  <p className="text-gray-700 text-xs font-cn leading-relaxed">{product.interactionInnovation}</p>
+                  <p className="text-gray-700 text-xs md:text-sm font-cn leading-relaxed">{product.interactionInnovation}</p>
                 </div>
               )}
               <div className={`inline-block px-3 py-1.5 rounded text-xs font-semibold ${v.color}`}>
@@ -349,62 +349,81 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 }
 
 // ─── One Thing Insight ────────────────────────────────────────────────────────
-function OneThingInsight({ insights, dateFilter }: { insights: Insight[]; dateFilter: "today" | "week" }) {
+function OneThingInsight({ insights }: { insights: Insight[]; dateFilter: "today" | "week" }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const dragStartX = useRef<number>(0);
 
-  useEffect(() => {
-    if (dateFilter === "week" && insights.length > 1) {
-      timerRef.current = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % insights.length);
-      }, 10000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [dateFilter, insights.length]);
+  const prev = () => setCurrentIndex((i) => (i - 1 + insights.length) % insights.length);
+  const next = () => setCurrentIndex((i) => (i + 1) % insights.length);
 
   const current = insights[currentIndex];
   if (!current) return null;
 
   return (
-    <motion.div
-      key={currentIndex}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.5 }}
-      className="card-material bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-lg p-6"
-    >
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-display font-bold text-lg text-gray-900">{current.headline}</h3>
-          {current.subheadline && (
-            <p className="text-sm text-blue-600 font-semibold mt-1">{current.subheadline}</p>
-          )}
-        </div>
-        <p className="text-gray-700 text-sm font-cn leading-relaxed">{current.content}</p>
-        <div className="flex items-center justify-between pt-4 border-t border-blue-200">
-          <span className="text-xs text-gray-500">来源：{current.source}</span>
-          {current.urgency && (
-            <span className="text-xs font-semibold text-blue-600">{current.urgency}</span>
-          )}
-        </div>
-        {insights.length > 1 && (
-          <div className="flex gap-1 justify-center">
+    <div className="relative">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -30 }}
+          transition={{ duration: 0.35 }}
+          className="card-material bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-lg p-6 cursor-grab active:cursor-grabbing select-none"
+          onPointerDown={(e) => { dragStartX.current = e.clientX; }}
+          onPointerUp={(e) => {
+            const delta = e.clientX - dragStartX.current;
+            if (Math.abs(delta) > 50) delta < 0 ? next() : prev();
+          }}
+        >
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-display font-bold text-lg text-gray-900">{current.headline}</h3>
+              {current.subheadline && (
+                <p className="text-sm text-blue-600 font-semibold mt-1">{current.subheadline}</p>
+              )}
+            </div>
+            <p className="text-gray-700 text-sm font-cn leading-relaxed">{current.content}</p>
+            <div className="flex items-center justify-between pt-4 border-t border-blue-200">
+              <span className="text-xs text-gray-500">来源：{current.source}</span>
+              {current.urgency && (
+                <span className="text-xs font-semibold text-blue-600">{current.urgency}</span>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation: dots + arrows */}
+      {insights.length > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-3">
+          <button
+            onClick={prev}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            aria-label="上一条"
+          >
+            &#8249;
+          </button>
+          <div className="flex gap-1.5">
             {insights.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${i === currentIndex ? "bg-blue-600" : "bg-gray-300"}`}
+                className={`rounded-full transition-all duration-200 ${
+                  i === currentIndex ? "w-4 h-2 bg-blue-600" : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                }`}
               />
             ))}
           </div>
-        )}
-      </div>
-    </motion.div>
+          <button
+            onClick={next}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            aria-label="下一条"
+          >
+            &#8250;
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

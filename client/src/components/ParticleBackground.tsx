@@ -50,8 +50,8 @@ export function ParticleBackground() {
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.55,
         vy: (Math.random() - 0.5) * 0.55,
-        radius: Math.random() * 1.8 + 0.8,
-        opacity: Math.random() * 0.45 + 0.2,
+        radius: Math.random() * 2 + 1,
+        opacity: Math.random() * 0.45 + 0.45,
       };
     }
 
@@ -107,7 +107,7 @@ export function ParticleBackground() {
         // Draw dot
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(59,130,246,${p.opacity})`;
+        ctx!.fillStyle = `rgba(37,99,235,${p.opacity})`;
         ctx!.fill();
       }
 
@@ -123,7 +123,7 @@ export function ParticleBackground() {
             ctx!.beginPath();
             ctx!.moveTo(a.x, a.y);
             ctx!.lineTo(b.x, b.y);
-            ctx!.strokeStyle = `rgba(99,155,255,${(1 - d / MAX_DIST) * 0.28})`;
+            ctx!.strokeStyle = `rgba(59,130,246,${(1 - d / MAX_DIST) * 0.45})`;
             ctx!.lineWidth = 0.7;
             ctx!.stroke();
           }
@@ -138,7 +138,7 @@ export function ParticleBackground() {
           ctx!.beginPath();
           ctx!.moveTo(p.x, p.y);
           ctx!.lineTo(mouse.x, mouse.y);
-          ctx!.strokeStyle = `rgba(59,130,246,${(1 - d / MOUSE_RADIUS) * 0.55})`;
+          ctx!.strokeStyle = `rgba(37,99,235,${(1 - d / MOUSE_RADIUS) * 0.75})`;
           ctx!.lineWidth = 0.9;
           ctx!.stroke();
         }
