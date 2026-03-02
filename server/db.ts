@@ -1,6 +1,6 @@
 import { eq, gte, lte, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, papers, newsItems, products, insights, InsertPaper, InsertNewsItem, InsertProduct, InsertInsight } from "../drizzle/schema";
+import { InsertUser, users, papers, newsItems, products, insights, InsertPaper, InsertNewsItem, InsertProduct, InsertInsight, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -183,4 +183,24 @@ export async function upsertInsight(insight: InsertInsight) {
   const db = await getDb();
   if (!db) return;
   await db.insert(insights).values(insight);
+}
+
+// ── System Config ─────────────────────────────────────────────────────────────
+export async function getSystemConfig(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get system config: database not available");
+    return null;
+  }
+  const result = await db.select().from(systemConfig).where(eq(systemConfig.key, key)).limit(1);
+  return result.length > 0 ? result[0].value : null;
+}
+
+export async function setSystemConfig(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot set system config: database not available");
+    return;
+  }
+  await db.insert(systemConfig).values({ key, value }).onDuplicateKeyUpdate({ set: { value } });
 }

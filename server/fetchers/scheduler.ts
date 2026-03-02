@@ -1,12 +1,12 @@
 /**
  * Daily Data Scheduler
- * Orchestrates all data fetchers and runs them on a daily schedule.
- * Triggered at 08:00 Beijing time (UTC+8) = 00:00 UTC
+ * Orchestrates all data fetchers. Triggered on-demand via routers.ts
+ * when the last update was more than 20 hours ago.
  */
 import { fetchArxivPapers } from "./arxiv";
 import { fetchAINews } from "./news";
 import { fetchAIProducts, generateDailyInsight } from "./products";
-import { getRecentPapers, getRecentNews, getRecentProducts, upsertInsight } from "../db";
+import { getRecentPapers, getRecentNews, getRecentProducts, upsertInsight, setSystemConfig } from "../db";
 import { notifyOwner } from "../_core/notification";
 
 let isRunning = false;
@@ -66,6 +66,10 @@ export async function runDailyUpdate(): Promise<{
     const summary = `每日更新完成: 论文 ${papersCount} 篇, 新闻 ${newsCount} 条, 产品 ${productsCount} 个, 洞察 ${insightSaved ? "已生成" : "未生成"}`;
     console.log(`[Scheduler] ${summary}`);
 
+    // Record last updated time in system_config
+    await setSystemConfig("last_updated_at", new Date().toISOString());
+    console.log("[Scheduler] last_updated_at recorded.");
+
     // Notify owner
     try {
       await notifyOwner({
@@ -83,40 +87,5 @@ export async function runDailyUpdate(): Promise<{
     return { success: false, papers: papersCount, news: newsCount, products: productsCount, insight: insightSaved, error: msg };
   } finally {
     isRunning = false;
-  }
-}
-
-// Cron-based scheduler: runs at 00:00 UTC (08:00 Beijing time)
-let cronTimer: NodeJS.Timeout | null = null;
-
-export function startScheduler() {
-  console.log("[Scheduler] Initializing daily update scheduler (08:00 Beijing / 00:00 UTC)...");
-
-  function scheduleNext() {
-    const now = new Date();
-    // Next midnight UTC
-    const nextRun = new Date(now);
-    nextRun.setUTCHours(0, 0, 0, 0);
-    if (nextRun <= now) {
-      nextRun.setUTCDate(nextRun.getUTCDate() + 1);
-    }
-
-    const msUntilNext = nextRun.getTime() - now.getTime();
-    console.log(`[Scheduler] Next run at ${nextRun.toISOString()} (in ${Math.round(msUntilNext / 1000 / 60)} minutes)`);
-
-    cronTimer = setTimeout(async () => {
-      await runDailyUpdate();
-      scheduleNext(); // Schedule next day
-    }, msUntilNext);
-  }
-
-  scheduleNext();
-}
-
-export function stopScheduler() {
-  if (cronTimer) {
-    clearTimeout(cronTimer);
-    cronTimer = null;
-    console.log("[Scheduler] Stopped.");
   }
 }
