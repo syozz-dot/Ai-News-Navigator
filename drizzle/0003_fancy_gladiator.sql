@@ -1,0 +1,1 @@
+ALTER TABLE `system_config` MODIFY COLUMN `key` varchar(128) NOT NULL;
