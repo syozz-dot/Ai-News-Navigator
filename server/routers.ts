@@ -28,21 +28,34 @@ function triggerUpdateIfStale(): void {
   });
 }
 
-// Date range helper
+// Date range helper — all boundaries are computed in Beijing time (UTC+8)
+// so that "today" always matches the user's calendar day in China.
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+
 function getDateRange(filter: "today" | "week") {
   const now = new Date();
-  const endDate = new Date(now);
-  endDate.setHours(23, 59, 59, 999);
+  // Shift now into Beijing time space
+  const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
 
-  const startDate = new Date(now);
+  // Beijing midnight of today (as a UTC timestamp)
+  const beijingTodayMidnightUTC = Date.UTC(
+    beijingNow.getUTCFullYear(),
+    beijingNow.getUTCMonth(),
+    beijingNow.getUTCDate()
+  );
+
   if (filter === "today") {
-    startDate.setHours(0, 0, 0, 0);
+    // today 00:00:00 Beijing = beijingTodayMidnightUTC - BEIJING_OFFSET_MS
+    const startDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS);
+    // today 23:59:59.999 Beijing
+    const endDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS + 24 * 60 * 60 * 1000 - 1);
+    return { startDate, endDate };
   } else {
-    startDate.setDate(startDate.getDate() - 7);
-    startDate.setHours(0, 0, 0, 0);
+    // week: 7 days ago 00:00:00 Beijing → today 23:59:59.999 Beijing
+    const startDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS - 7 * 24 * 60 * 60 * 1000);
+    const endDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS + 24 * 60 * 60 * 1000 - 1);
+    return { startDate, endDate };
   }
-
-  return { startDate, endDate };
 }
 
 const dateFilterSchema = z.object({

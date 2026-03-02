@@ -1,53 +1,61 @@
 /**
  * Tests for AI News Navigator tRPC routers
- * Tests the date filtering logic and data structure
+ * Tests the date filtering logic (Beijing-time aware) and data structure
  */
 import { describe, it, expect } from "vitest";
 
-// ── Date range helper (extracted from routers.ts) ────────────────────────────
+// ── Date range helper (extracted from routers.ts, Beijing-time aware) ─────────
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+
 function getDateRange(filter: "today" | "week") {
   const now = new Date();
-  const endDate = new Date(now);
-  endDate.setHours(23, 59, 59, 999);
+  const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
+  const beijingTodayMidnightUTC = Date.UTC(
+    beijingNow.getUTCFullYear(),
+    beijingNow.getUTCMonth(),
+    beijingNow.getUTCDate()
+  );
 
-  const startDate = new Date(now);
   if (filter === "today") {
-    startDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS);
+    const endDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS + 24 * 60 * 60 * 1000 - 1);
+    return { startDate, endDate };
   } else {
-    startDate.setDate(startDate.getDate() - 7);
-    startDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS - 7 * 24 * 60 * 60 * 1000);
+    const endDate = new Date(beijingTodayMidnightUTC - BEIJING_OFFSET_MS + 24 * 60 * 60 * 1000 - 1);
+    return { startDate, endDate };
   }
-
-  return { startDate, endDate };
 }
 
-describe("Date range helper", () => {
-  it("returns today range with start at midnight and end at 23:59:59", () => {
+describe("Date range helper (Beijing-time aware)", () => {
+  it("today range spans exactly 24 hours", () => {
     const { startDate, endDate } = getDateRange("today");
-    expect(startDate.getHours()).toBe(0);
-    expect(startDate.getMinutes()).toBe(0);
-    expect(endDate.getHours()).toBe(23);
-    expect(endDate.getMinutes()).toBe(59);
-    expect(endDate.getSeconds()).toBe(59);
+    const diffMs = endDate.getTime() - startDate.getTime() + 1; // +1 because end is 23:59:59.999
+    expect(diffMs).toBe(24 * 60 * 60 * 1000);
   });
 
-  it("returns week range spanning approximately 7 days", () => {
+  it("today startDate is Beijing midnight (UTC+8 offset applied)", () => {
+    const { startDate } = getDateRange("today");
+    // startDate in Beijing time should be 00:00:00
+    const beijingHour = (startDate.getUTCHours() + 8) % 24;
+    expect(beijingHour).toBe(0);
+    expect(startDate.getUTCMinutes()).toBe(0);
+    expect(startDate.getUTCSeconds()).toBe(0);
+  });
+
+  it("today endDate is Beijing 23:59:59.999", () => {
+    const { endDate } = getDateRange("today");
+    // endDate in Beijing time should be 23:59:59.999
+    const beijingHour = (endDate.getUTCHours() + 8) % 24;
+    expect(beijingHour).toBe(23);
+    expect(endDate.getUTCMinutes()).toBe(59);
+    expect(endDate.getUTCSeconds()).toBe(59);
+  });
+
+  it("week range spans exactly 8 days (7 past days + today)", () => {
     const { startDate, endDate } = getDateRange("week");
-    const diffMs = endDate.getTime() - startDate.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    // Should be between 7 and 8 days (start is midnight, end is 23:59:59)
-    expect(diffDays).toBeGreaterThanOrEqual(6.9);
-    expect(diffDays).toBeLessThanOrEqual(8.1);
-  });
-
-  it("week start date is 7 days before today", () => {
-    const { startDate } = getDateRange("week");
-    const now = new Date();
-    const diffMs = now.getTime() - startDate.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    // Start is midnight 7 days ago, so diff from now is 7-8 days
-    expect(diffDays).toBeGreaterThanOrEqual(6.9);
-    expect(diffDays).toBeLessThanOrEqual(8.1);
+    const diffMs = endDate.getTime() - startDate.getTime() + 1;
+    expect(diffMs).toBe(8 * 24 * 60 * 60 * 1000);
   });
 
   it("today range start is before end", () => {
@@ -58,6 +66,20 @@ describe("Date range helper", () => {
   it("week range start is before end", () => {
     const { startDate, endDate } = getDateRange("week");
     expect(startDate.getTime()).toBeLessThan(endDate.getTime());
+  });
+
+  it("fetchedAt (getTodayBeijing) falls within today's date range", () => {
+    // Simulate getTodayBeijing logic used in fetchers
+    const now = new Date();
+    const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
+    const beijingMidnight = new Date(
+      Date.UTC(beijingNow.getUTCFullYear(), beijingNow.getUTCMonth(), beijingNow.getUTCDate())
+    );
+    const fetchedAt = new Date(beijingMidnight.getTime() - BEIJING_OFFSET_MS);
+
+    const { startDate, endDate } = getDateRange("today");
+    expect(fetchedAt.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
+    expect(fetchedAt.getTime()).toBeLessThanOrEqual(endDate.getTime());
   });
 });
 

@@ -149,9 +149,28 @@ async function enrichPaperWithLLM(paper: {
   }
 }
 
+/**
+ * Returns the start of today in Beijing time (UTC+8), expressed as a UTC Date.
+ * e.g. if Beijing time is 2026-03-02 10:00, returns 2026-03-01T16:00:00.000Z
+ */
+function getTodayBeijing(): Date {
+  const now = new Date();
+  // Beijing offset: UTC+8 = +480 minutes
+  const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
+  // Midnight in Beijing time
+  const beijingMidnight = new Date(
+    Date.UTC(beijingNow.getUTCFullYear(), beijingNow.getUTCMonth(), beijingNow.getUTCDate())
+  );
+  // Convert back to UTC
+  return new Date(beijingMidnight.getTime() - BEIJING_OFFSET_MS);
+}
+
 export async function fetchArxivPapers(maxResults = 5): Promise<number> {
   console.log("[arXiv] Starting fetch...");
   let savedCount = 0;
+  // Use Beijing-time today as publishedAt so data always appears in today's filter
+  const fetchedAt = getTodayBeijing();
 
   for (const query of AI_QUERIES.slice(0, 2)) {
     try {
@@ -175,7 +194,9 @@ export async function fetchArxivPapers(maxResults = 5): Promise<number> {
           const arxivId = entry.id.split("/abs/").pop() || entry.id;
           const paperId = `arxiv-${arxivId.replace(/\./g, "-")}`;
           const paperUrl = entry.links.find((l) => l.type === "text/html")?.href || entry.id;
-          const publishedAt = new Date(entry.published);
+          // Keep original arXiv date for display (submitted field), but use
+          // Beijing-time today as publishedAt so data appears in today's filter.
+          const originalDate = new Date(entry.published);
 
           // Enrich with LLM
           const enriched = await enrichPaperWithLLM({
@@ -191,12 +212,12 @@ export async function fetchArxivPapers(maxResults = 5): Promise<number> {
             tag: enriched.tag,
             source: "arXiv",
             url: paperUrl,
-            submitted: publishedAt.toISOString().split("T")[0],
+            submitted: originalDate.toISOString().split("T")[0],
             impactScore: enriched.impactScore,
             corePrinciple: enriched.corePrinciple,
             bottomLogic: enriched.bottomLogic,
             productImagination: enriched.productImagination,
-            publishedAt,
+            publishedAt: fetchedAt,
           };
 
           await upsertPaper(paper);

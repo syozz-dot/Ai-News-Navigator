@@ -168,10 +168,25 @@ ${products.slice(0, 3).join("\n")}
   }
 }
 
+/**
+ * Returns the start of today in Beijing time (UTC+8), expressed as a UTC Date.
+ */
+function getTodayBeijing(): Date {
+  const now = new Date();
+  const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
+  const beijingMidnight = new Date(
+    Date.UTC(beijingNow.getUTCFullYear(), beijingNow.getUTCMonth(), beijingNow.getUTCDate())
+  );
+  return new Date(beijingMidnight.getTime() - BEIJING_OFFSET_MS);
+}
+
 export async function fetchAIProducts(maxItems = 5): Promise<number> {
   console.log("[Products] Starting fetch...");
   let savedCount = 0;
   let productIndex = 1;
+  // Use Beijing-time today as publishedAt so data always appears in today's filter
+  const fetchedAt = getTodayBeijing();
 
   const phItems = await fetchProductHuntRss();
   console.log(`[Products] Fetched ${phItems.length} items from Product Hunt`);
@@ -194,7 +209,7 @@ export async function fetchAIProducts(maxItems = 5): Promise<number> {
         verdict: enriched.verdict,
         painPointAnalysis: enriched.painPointAnalysis,
         interactionInnovation: enriched.interactionInnovation,
-        publishedAt: new Date(),
+        publishedAt: fetchedAt,
       };
 
       await upsertProduct(product);

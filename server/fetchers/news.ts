@@ -118,10 +118,25 @@ async function enrichNewsWithLLM(item: RssItem): Promise<{
   }
 }
 
+/**
+ * Returns the start of today in Beijing time (UTC+8), expressed as a UTC Date.
+ */
+function getTodayBeijing(): Date {
+  const now = new Date();
+  const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const beijingNow = new Date(now.getTime() + BEIJING_OFFSET_MS);
+  const beijingMidnight = new Date(
+    Date.UTC(beijingNow.getUTCFullYear(), beijingNow.getUTCMonth(), beijingNow.getUTCDate())
+  );
+  return new Date(beijingMidnight.getTime() - BEIJING_OFFSET_MS);
+}
+
 export async function fetchAINews(maxPerSource = 3): Promise<number> {
   console.log("[News] Starting fetch...");
   let savedCount = 0;
   let newsIndex = 1;
+  // Use Beijing-time today as publishedAt so data always appears in today's filter
+  const fetchedAt = getTodayBeijing();
 
   for (const feed of RSS_FEEDS) {
     try {
@@ -149,7 +164,9 @@ export async function fetchAINews(maxPerSource = 3): Promise<number> {
       for (const item of aiItems.slice(0, maxPerSource)) {
         try {
           const newsId = `news-${Date.now()}-${newsIndex++}`;
-          const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
+          // Keep original pubDate for display (time field), but use
+          // Beijing-time today as publishedAt so data appears in today's filter.
+          const originalDate = item.pubDate ? new Date(item.pubDate) : new Date();
 
           const enriched = await enrichNewsWithLLM(item);
 
@@ -160,12 +177,12 @@ export async function fetchAINews(maxPerSource = 3): Promise<number> {
             tag: enriched.tag,
             source: feed.source,
             url: item.link,
-            time: publishedAt.toISOString().split("T")[0],
+            time: originalDate.toISOString().split("T")[0],
             urgency: enriched.urgency,
             summary: enriched.summary,
             powerShift: enriched.powerShift,
             businessInsight: enriched.businessInsight,
-            publishedAt,
+            publishedAt: fetchedAt,
           };
 
           await upsertNewsItem(newsItem);
