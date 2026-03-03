@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { ENV } from "./env";
+import { runDailyUpdate } from "../fetchers/scheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -35,6 +37,20 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+
+  // Cron trigger endpoint — called by cron-job.org daily
+  app.get("/api/cron/trigger", async (req, res) => {
+    const secret = req.query.secret as string;
+    if (!secret || secret !== ENV.cronSecret) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    // Run update in background, respond immediately
+    res.json({ ok: true, message: "Daily update triggered" });
+    runDailyUpdate().catch(err =>
+      console.error("[Cron] Background update failed:", err)
+    );
+  });
   // tRPC API
   app.use(
     "/api/trpc",
